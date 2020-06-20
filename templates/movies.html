@@ -5,11 +5,17 @@
     <title>Movies</title>
 </head>
 <body>
+<p> Movies were updated at: {{ update }} </p>
 {% for movie in movies %}
-    <h1> Movie: {{ movie.name }} </h1>
-    {% for person in movie.people %}
-        <p> Person: {{ person.name }} </p>
-    {% endfor %}
+    <h1> Movie: {{ movie.title }} </h1>
+    <b> People: </b>
+    <ul>
+        {% for person in movie.people %}
+            <li> {{ person.name }} </li>
+        {% endfor %}
+    </ul>
+
 {% endfor %}
+
 </body>
 </html>
