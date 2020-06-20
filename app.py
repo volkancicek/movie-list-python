@@ -8,7 +8,7 @@ from scheduler import Scheduler
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.sqlite')
-app = Flask(__name__)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 scheduler = Scheduler()
 
@@ -74,8 +74,8 @@ def main():
 
 @app.route('/')
 def default():
-    return "{0}, App is running.. \n Movies were updated at {1}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                                                        scheduler.movies_update_time)
+    return "{0}, App is running...  Movies were updated at {1}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                                                       scheduler.movies_update_time)
 
 
 @app.route('/movies/', methods=['GET'])
