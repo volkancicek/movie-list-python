@@ -1,14 +1,12 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template
 import os
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-from src.services.api_service import get_all_films, get_all_people
-from src.services.scheduler import Scheduler
+from services.api_service import get_all_films, get_all_people
+from services.scheduler import Scheduler
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.sqlite')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app = Flask(__name__, instance_relative_config=False)
+app.config.from_pyfile('app.cfg')
 db = SQLAlchemy(app)
 scheduler = Scheduler()
 
