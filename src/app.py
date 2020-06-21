@@ -1,9 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 import os
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-from api_service import get_all_films, get_all_people
-from scheduler import Scheduler
+from src.services.api_service import get_all_films, get_all_people
+from src.services.scheduler import Scheduler
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -66,16 +66,18 @@ def save_movies_to_db():
 
 def main():
     db.create_all()
-    save_movies_to_db()
+    refresh_movies()
     scheduler.schedule_background_job(refresh_movies, 60)
     port = int(os.environ.get('PORT', 8000))
     app.run(host='localhost', port=port)
 
 
 @app.route('/')
-def default():
-    return "{0}, App is running...  Movies were updated at {1}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                                                       scheduler.movies_update_time)
+def index():
+    ret_str = "{0}, App is running...   Movies were updated at {1}".format(
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        scheduler.movies_update_time)
+    return ret_str
 
 
 @app.route('/movies/', methods=['GET'])
