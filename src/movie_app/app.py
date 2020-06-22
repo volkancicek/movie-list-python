@@ -1,9 +1,13 @@
 import os
+import sys
 from datetime import datetime
 from flask import Flask, render_template
-from flask_sqlalchemy import SQLAlchemy
-from services.api_service import get_all_films, get_all_people
-from services.scheduler import Scheduler
+import services.api_service as api
+import services.db_service as db_service
+from services.schedule_service import Scheduler
+
+sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.join(os.path.dirname(__file__), "services"))
 
 
 def create_app(conf):
@@ -14,12 +18,14 @@ def create_app(conf):
 
 
 app = create_app('app.cfg')
-db = SQLAlchemy(app)
+db = db_service.get_db(app)
 scheduler = Scheduler()
 
-""" SQLAlchemy classes and relation table"""
+""" relation table"""
 Person_Movie = db.Table('person_movie', db.Column('person_id', db.String(36), db.ForeignKey('people.ghibli_id')),
                         db.Column('film_id', db.String(36), db.ForeignKey('movies.ghibli_id')))
+
+"""SQLAlchemy objects"""
 
 
 class Movies(db.Model):
@@ -37,30 +43,19 @@ class People(db.Model):
     ghibli_id = db.Column(db.String(36))
 
 
-""" SQLAlchemy """
-
-
 def refresh_movies():
     """ a function to clear movies at DB and then get from ghibli api again"""
-    clear_data()
-    save_movies_to_db()
+    db_service.clear_data(db)
+    films = api.get_all_films()
+    people = api.get_all_people()
+    save_movies_to_db(films, people)
 
 
-def clear_data():
-    """ a function to remove existing records from DB"""
-    meta = db.metadata
-    for table in reversed(meta.sorted_tables):
-        db.session.execute(table.delete())
-    db.session.commit()
-
-
-def save_movies_to_db():
+def save_movies_to_db(films, people):
     """ a function that retrieves movies and related people from ghibli api and saves to DB"""
-    films = get_all_films()
     for i in range(len(films)):
         db.session.add(Movies(title=films[i]['title'], ghibli_id=films[i]['id']))
         db.session.commit()
-    people = get_all_people()
     for i in range(len(people)):
         person_id = people[i]['id']
         db.session.add(People(name=people[i]['name'], ghibli_id=person_id))
