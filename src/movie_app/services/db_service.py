@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 
 def clear_data(db):
-    """ a function to remove existing records from DB"""
+    """ a function to remove existing records from db"""
     meta = db.metadata
     for table in reversed(meta.sorted_tables):
         db.session.execute(table.delete())

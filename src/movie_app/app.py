@@ -1,13 +1,14 @@
 import os
 import sys
 from datetime import datetime
+
 from flask import Flask, render_template
+
 import services.api_service as api
 import services.db_service as db_service
 from services.schedule_service import Scheduler
 
 sys.path.append(os.path.dirname(__file__))
-sys.path.append(os.path.join(os.path.dirname(__file__), "services"))
 
 
 def create_app(conf):
@@ -44,7 +45,7 @@ class People(db.Model):
 
 
 def refresh_movies():
-    """ a function to clear movies at DB and then get from ghibli api again"""
+    """ a function that clears db, gets from ghibli api again and then saves to db"""
     db_service.clear_data(db)
     films = api.get_all_films()
     people = api.get_all_people()
@@ -52,7 +53,7 @@ def refresh_movies():
 
 
 def save_movies_to_db(films, people):
-    """ a function that retrieves movies and related people from ghibli api and saves to DB"""
+    """ a function that saves movies and related people to DB"""
     for i in range(len(films)):
         db.session.add(Movies(title=films[i]['title'], ghibli_id=films[i]['id']))
         db.session.commit()

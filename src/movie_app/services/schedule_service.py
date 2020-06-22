@@ -1,12 +1,12 @@
 import atexit
-from datetime import datetime
+
 from apscheduler.schedulers.background import BackgroundScheduler
 
 
 class Scheduler:
 
     def __init__(self):
-        self.movies_update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.movies_update_time = 'unknown'
 
     def schedule_background_job(self, func_to_schedule, seconds):
         scheduler = BackgroundScheduler()
