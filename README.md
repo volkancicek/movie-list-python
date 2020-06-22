@@ -16,13 +16,9 @@ with dockerfile:
 `docker run movies:latest`
 
 
-## urls 
-index
-
-[http://localhost:8000/]
-
+## url
 
 plain list of all movies from the Ghibli API including the people that
 appear in it.
 
-[http://localhost:8000/movies/]
+[localhost:8000/movies/]
