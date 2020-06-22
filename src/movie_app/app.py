@@ -1,8 +1,9 @@
+import atexit
 import os
 import sys
 from datetime import datetime
 
-from flask import Flask, render_template
+from flask import Flask, render_template, Blueprint
 
 import services.api_service as api
 import services.db_service as db_service
@@ -10,17 +11,22 @@ from services.schedule_service import Scheduler
 
 sys.path.append(os.path.dirname(__file__))
 
+movies_bp = Blueprint('movies_bp', __name__, template_folder='templates', static_folder='static')
+
 
 def create_app(conf):
     """ a function to create app using config file """
-    app = Flask(__name__, instance_relative_config=False)
-    app.config.from_pyfile(conf)
-    return app
+    new_app = Flask(__name__, instance_relative_config=False)
+    new_app.config.from_pyfile(conf)
+    new_app.register_blueprint(movies_bp)
+    return new_app
 
 
 app = create_app('app.cfg')
 db = db_service.get_db(app)
 scheduler = Scheduler()
+"""drop db at exit"""
+atexit.register(lambda: db.drop_all())
 
 """ relation table"""
 Person_Movie = db.Table('person_movie', db.Column('person_id', db.String(36), db.ForeignKey('people.ghibli_id')),
@@ -79,6 +85,7 @@ def main():
     app.run(host='localhost', port=port)
 
 
+@movies_bp.route('/')
 @app.route('/')
 def index():
     ret_str = "{0}, App is running...   Movies were updated at {1}".format(
@@ -87,6 +94,7 @@ def index():
     return ret_str
 
 
+@movies_bp.route('/movies/', methods=['GET'])
 @app.route('/movies/', methods=['GET'])
 def movies():
     all_movies = Movies.query.all()
