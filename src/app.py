@@ -1,17 +1,24 @@
-from flask import Flask, render_template
 import os
 from datetime import datetime
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from services.api_service import get_all_films, get_all_people
 from services.scheduler import Scheduler
 
-app = Flask(__name__, instance_relative_config=False)
-app.config.from_pyfile('app.cfg')
+
+def create_app(conf):
+    """ a function to create app using config file """
+    app = Flask(__name__, instance_relative_config=False)
+    app.config.from_pyfile(conf)
+    return app
+
+
+app = create_app('app.cfg')
 db = SQLAlchemy(app)
 scheduler = Scheduler()
 
-Person_Movie = db.Table('person_movie',
-                        db.Column('person_id', db.String(36), db.ForeignKey('people.ghibli_id')),
+""" SQLAlchemy classes and relation table"""
+Person_Movie = db.Table('person_movie', db.Column('person_id', db.String(36), db.ForeignKey('people.ghibli_id')),
                         db.Column('film_id', db.String(36), db.ForeignKey('movies.ghibli_id')))
 
 
@@ -30,20 +37,25 @@ class People(db.Model):
     ghibli_id = db.Column(db.String(36))
 
 
+""" SQLAlchemy """
+
+
 def refresh_movies():
-    clear_db()
+    """ a function to clear movies at DB and then get from ghibli api again"""
+    clear_data()
     save_movies_to_db()
 
 
-def clear_db():
-    delete_m = Movies.__table__.delete()
-    db.session.execute(delete_m)
-    delete_p = People.__table__.delete()
-    db.session.execute(delete_p)
+def clear_data():
+    """ a function to remove existing records from DB"""
+    meta = db.metadata
+    for table in reversed(meta.sorted_tables):
+        db.session.execute(table.delete())
     db.session.commit()
 
 
 def save_movies_to_db():
+    """ a function that retrieves movies and related people from ghibli api and saves to DB"""
     films = get_all_films()
     for i in range(len(films)):
         db.session.add(Movies(title=films[i]['title'], ghibli_id=films[i]['id']))
@@ -63,9 +75,10 @@ def save_movies_to_db():
 
 
 def main():
+    """ main function"""
     db.create_all()
     refresh_movies()
-    scheduler.schedule_background_job(refresh_movies, 60)
+    scheduler.schedule_background_job(refresh_movies, 50)
     port = int(os.environ.get('PORT', 8000))
     app.run(host='localhost', port=port)
 
@@ -82,7 +95,8 @@ def index():
 def movies():
     all_movies = Movies.query.all()
 
-    return render_template('movies.html', movies=all_movies, update=scheduler.movies_update_time)
+    return render_template('movies.html', movies=all_movies, update=scheduler.movies_update_time,
+                           curr=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 
 if __name__ == '__main__':
