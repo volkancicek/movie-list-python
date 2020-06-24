@@ -1,7 +1,7 @@
 # movie-list-python-flask
 A flask web app that retrieves movies and people in them from ghibli api [https://ghibliapi.herokuapp.com/] and lists.
 
-## Build & Run
+## Installation & Run
 
 with commands:
 
