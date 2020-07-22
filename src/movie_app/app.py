@@ -62,17 +62,16 @@ def save_movies_to_db(films, people):
     """ a function that saves movies and related people to DB"""
     for i in range(len(films)):
         db.session.add(Movies(title=films[i]['title'], ghibli_id=films[i]['id']))
-        db.session.commit()
+    db.session.commit()
     for i in range(len(people)):
         person_id = people[i]['id']
         db.session.add(People(name=people[i]['name'], ghibli_id=person_id))
-        db.session.commit()
         films = people[i]['films']
         for j in range(len(films)):
             film_id = films[j].split("/")[-1]
             statement = Person_Movie.insert().values(film_id=film_id, person_id=person_id)
             db.session.execute(statement)
-            db.session.commit()
+    db.session.commit()
     scheduler.movies_update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
